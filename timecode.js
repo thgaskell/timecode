@@ -31,11 +31,11 @@
 
     Timecode.config = function(obj) {
         if ( arguments.length > 0 && typeof obj === 'object' ){
-            if ( obj.hasOwnProperty('fps') && Timecode.domain.fps.indexOf(obj['fps']) > -1 ) {
-                Timecode.fps = obj['fps'];
+            if ( obj.hasOwnProperty('fps') && Timecode.domain.fps.indexOf(obj.fps) > -1 ) {
+                Timecode.fps = obj.fps;
             }
             if ( obj.hasOwnProperty('dropframe') ){
-                Timecode.dropframe = obj['dropframe'];
+                Timecode.dropframe = obj.dropframe;
             }
         }
     };
@@ -65,7 +65,7 @@
                 if ( typeof arguments[0] === 'string' 
                      && Timecode.validate(arguments[0]) )
                 {
-                    var timecode = Timecode.regex.match(arguments[0]);
+                    var timecode = arguments[0].match(Timecode.regex);
                     this.hour = timecode[1];
                     this.minute = timecode[2];
                     this.second = timecode[3];
@@ -73,7 +73,7 @@
                     this.dropframe = (timecode[4] !== ':');
                 }
                 else if ( typeof arguments[0] === 'number' ) {
-                    // TODO: this.parseFrame(arguments(0));
+                    throw new RangeError("Currently unsupported.");
                 }
                 break;
             case 6:
@@ -85,9 +85,7 @@
                     this.fps = arguments[4];
                 }
             case 4:
-                var isNumber = function(arg) { return typeof arg === 'number' };
-                if ( Array.prototype.slice.call(arguments, 0,4).
-                        every(function(arg) { return typeof arg === 'number' }) ) {
+                if ( Array.prototype.slice.call(arguments, 0,4).every(isNumber) ) {
                     this.hour = arguments[0];
                     this.minute = arguments[1];
                     this.second = arguments[2];
@@ -98,7 +96,42 @@
             default:
                 break;
         }
+
+        function getFrame2997(frameNumber) {
+            var times, hour, minute, second, frame, totalMinutes, frameNumber;
+
+            times = timecode.split(/[:;]/).map(Number);
+
+            hours = times[0];
+            minutes = times[1];
+            seconds = times[2];
+            frames = times[3];
+
+            totalMinutes = 60 * hours + minutes;
+            frameNumber = 108000 * hours + 1800 * minutes + 30 * seconds + frames - 2 * (totalMinutes - Math.floor(totalMinutes / 10));
+
+            return frameNumber;
+        }
+
+        function getTimecode2997(frameNumber) {
+            var D, M, frameNumber, frames, seconds, minutes, hours;
+
+            D = Math.floor(frameNumber / 17982);
+            M = frameNumber % 17982;
+            frameNumber += 18 * D + 2 * Math.floor((M - 2) / 1798);
+
+            frames = frameNumber % 30;
+            seconds = Math.floor(frameNumber / 30) % 60;
+            minutes = Math.floor(Math.floor(frameNumber / 30) / 60) % 60;
+            hours = Math.floor(Math.floor(Math.floor(frameNumber / 30) / 60) / 60) % 24;
+
+            return hours + ":" + minutes + ":" + seconds + ";" + frames;
+        }
     }
 
     return Timecode;
+
+    function isNumber(arg) {
+        return typeof arg === 'number'
+    };
 })();
