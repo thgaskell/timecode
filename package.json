@@ -1,0 +1,26 @@
+{
+  "name": "timecode",
+  "version": "0.0.0",
+  "description": "Library for creating and manipulating SMPTE timecode objects.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://thgaskell@github.com/thgaskell/timecode.git"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/thgaskell/timecode/issues"
+  },
+  "devDependencies": {
+    "chai": "~1.8.1",
+    "mocha": "~1.14.0",
+    "grunt": "~0.4.2"
+  }
+}

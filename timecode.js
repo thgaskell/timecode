@@ -13,12 +13,21 @@
         else {
             this.Timecode = Timecode;
         }
+
+        Timecode.prototype.toString = function() {
+            var string = [this.hour, this.minute, this.second].map(function(value) {
+                return ('0' + value).slice(-2) })
+                .join(':');
+            string += (this.dropframe) ? ';' : ':';
+            return string + ('0' + this.frame).slice(-2);
+        }
+
     })();
 
     /* Initial values */
     Timecode.fps = 30;
     Timecode.dropframe = false;
-    Timecode.regex = /^(\d{2}):(\d{2}):(\d{2})([:.;])(\d{2})$/;
+    Timecode.regex = /^(\d{2,}):(\d{2}):(\d{2})([:.;])(\d{2})$/;
 
     /* Supported framerates */
     Timecode.domain = {
