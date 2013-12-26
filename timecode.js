@@ -1,216 +1,84 @@
+module.exports =
+
 (function() {
 
-    (function init() {
+    var regex = /^(\d{2}):(\d{2}):(\d{2})([:;,])(\d{2})$/;
 
-        /* Export the Timecode object for **Node.js**, with
-         * backwards-compatibility for the old `require()` API. If we're in
-         * the browser, add `Timecode` as a global object via a string identifier,
-         * for Closure Compiler "advanced" mode.
-         */
-        if (typeof exports !== 'undefined') {
-            if (typeof module !== 'undefined' && module.exports) {
-                exports = module.exports = Timecode;
-            }
-            exports.Timecode = Timecode;
-        }
-        else {
-            this.Timecode = Timecode;
-        }
-
-        // Initial values
-        Timecode.fps = 30;
-        Timecode.dropframe = false;
-
-        Timecode.prototype.toString = function() {
-            var string = [this.hour, this.minute, this.second].map(function(value) {
-                    return ('0' + value).slice(-2); 
-                })
-                .join(':');
-            string += (this.dropframe) ? ';' : ':';
-            return string + ('0' + this.frame).slice(-2);
-        };
-
-    })();
-
-    var regex = /^(\d{2}):(\d{2}):(\d{2})([:;])(\d{2})$/,
-
-    // Supported framerates
-        domain = {
-            fps: [23.98, 24, 25, 29.97, 30]
-        };
-
-    /**
-     * validate() returns boolean representing whether the input
-     * is a well-fromed SMTPE timecode string
-     *
-     * @param <String> timecode
-     * @return <Boolean> validated Whether the string matches the timecode regex pattern 
-     */
     Timecode.validate = function(timecode) {
 
         return regex.test(timecode);
 
     };
 
-    Timecode.config = function(obj) {
+    Timecode.prototype.toString = function() {
 
-        if (arguments.length > 0 && typeof obj === 'object') {
-            if (obj.hasOwnProperty('fps') &&
-                    typeof obj.fps === 'number' &&
-                    domain.fps.indexOf(obj.fps) > -1) {
-                Timecode.fps = obj.fps;
-            }
-            if (obj.hasOwnProperty('dropframe') &&
-                    typeof obj.dropframe === 'boolean') {
-                Timecode.dropframe = obj.dropframe;
-            }
-        }
+        var times = [this.hour, this.minute, this.second, this.frame]
+            .map(function(number, index) {
+                return ('0' + number).slice(-2);
+            });
 
+        return times.slice(0, 3).join(':') +
+            (this.dropframe ? ';' : ':') +
+            times[3];
+            
     };
 
-    Timecode.reset = function() {
-
-        Timecode.fps = 30;
-        Timecode.dropframe = false;
-
-    };
-
-    /**
-     * SMTPE Timecode
-     *
-     * @class Timecode 
-     * @constructor
-     */
     function Timecode() {
 
-        this.hour = 0;
-        this.minute = 0;
-        this.second = 0;
-        this.frame = 0;
-        this.fps = Timecode.fps;
-        this.dropframe = Timecode.dropframe;
+        if (valid(arguments)) {
 
+            switch(arguments.length) {
 
-
-        (function inputValidation(args) {
-            var parsedValues;
-            switch (args.length) {
-
-                // "01:02:03:04", 30
                 case 2:
-
-                    if (typeof args[0] === 'string' &&
-                            typeof args[1] === 'number' &&
-                            domain.fps.indexOf(args[1]) > -1) {
-                        this.fps = args[1];
-                    }
-                    else throw new RangeError();
+                    parse.call(this, arguments[0]);
+                    this.framerate = arguments[1];
                     break;
 
-                // "01:02:03:04" or "01:02:03;04"
-                case 1:
-
-                    if (typeof args[0] === 'string' &&
-                            Timecode.validate(args[0])) {
-                        console.log('hi');
-                        parsedValues = args[0].split(/[:;]/)
-                            .map(function(value) {
-                                return Number(value);
-                            });
-                        this.hour = parsedValues[0];
-                        this.minute = parsedValues[1];
-                        this.second = parsedValues[2];
-                        this.frame = parsedValues[3];
-                        this.dropframe = args[0].indexOf(";") > -1;
-                    }
-                    else throw new RangeError();
-                    break;
-
-                // 0, 1, 2, 3, 4, false, 30
-                case 6: 
-
-                    if (typeof args[5] === 'number' &&
-                            domain.fps.indexOf(args[5]) > -1) {
-                        this.fps = args[5];
-                    }
-                    else throw new RangeError();
-                    break;
-
-                // 0, 1, 2, 3, 4, false
-                case 5: 
-
-                    if (typeof args[4] === 'boolean') {
-                        this.dropframe = args[4];
-                    }
-                    else throw new RangeError();
-                    break;
-
-                // 0, 1, 2, 3
-                case 4:
-
-                    var parameters = [].slice.call(args, 0, 4);
-                    if (parameters.every(function(parameter) {
-                            return typeof parameter === 'number';
-                    })) {
-                        parameters = parameters.map(function(parameter) {
-                            return Math.floor(parameter);
-                        });
-                        this.hour = parameters[0];
-                        this.minute = parameters[1];
-                        this.second = parameters[2];
-                        this.frame = parameters[3];
-                    }
-                    else throw new RangeError();
-                    break;
-
-                case 0: 
-
+                case 6:
+                    this.hour = arguments[0];
+                    this.minute = arguments[1];
+                    this.second = arguments[2];
+                    this.frame = arguments[3];
+                    this.framerate = arguments[4];
+                    this.dropframe = arguments[5];
                     break;
 
                 default:
+                    throw new Error();
 
-                    throw new RangeError();
             }
-        }).call(this, arguments);
 
-        this.getMilliseconds = function() {
+        }
+        else throw new TypeError();
 
-            return this.frame / this.fps * 1000;
+        function valid(args) {
 
-        };
-
-        function getFrame2997(frameNumber) {
-
-            var times, hour, minute, second, frame, totalMinutes, frameNumber;
-
-            times = timecode.split(/[:;]/).map(Number);
-
-            hours = times[0];
-            minutes = times[1];
-            seconds = times[2];
-            frames = times[3];
-
-            totalMinutes = 60 * hours + minutes;
-            frameNumber = 108000 * hours + 1800 * minutes + 30 * seconds + frames - 2 * (totalMinutes - Math.floor(totalMinutes / 10));
-
-            return frameNumber;
+            return (
+                (typeof args[0] === 'string' &&
+                    Timecode.validate(args[0]) &&
+                    typeof args[1] === 'number'
+                ) ||
+                ([].slice.call(args, 0, 5)
+                    .every(function(value) {
+                        return typeof value === 'number';
+                    }) &&
+                    typeof args[5] === 'boolean'
+                )
+            );
 
         }
 
-        function getTimecode2997(frameNumber) {
-            var D, M, frameNumber, frames, seconds, minutes, hours;
+        function parse(timecode) {
 
-            D = Math.floor(frameNumber / 17982);
-            M = frameNumber % 17982;
-            frameNumber += 18 * D + 2 * Math.floor((M - 2) / 1798);
+            var results = regex.exec(timecode);
+            this.hour = Number(results[1]);
+            this.minute = Number(results[2]);
+            this.second = Number(results[3]);
+            this.frame = Number(results[5]);
+            this.dropframe = (results[4] !== ':');
 
-            frames = frameNumber % 30;
-            seconds = Math.floor(frameNumber / 30) % 60;
-            minutes = Math.floor(Math.floor(frameNumber / 30) / 60) % 60;
-            hours = Math.floor(Math.floor(Math.floor(frameNumber / 30) / 60) / 60) % 24;
-
-            return hours + ":" + minutes + ":" + seconds + ";" + frames;
         }
+
     }
 
     return Timecode;
