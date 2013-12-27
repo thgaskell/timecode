@@ -25,31 +25,53 @@ module.exports =
 
     function Timecode() {
 
-        if (valid(arguments)) {
+        var values;
 
+        if (valid(arguments)) {
             switch(arguments.length) {
 
                 case 2:
-                    parse.call(this, arguments[0]);
-                    this.framerate = arguments[1];
+                    parseString.call(this, arguments[0], arguments[1]);
                     break;
-
+                case 3:
+                    parseFrame.call(this, arguments[0], arguments[1], arguments[2]);
+                    break;
                 case 6:
-                    this.hour = arguments[0];
-                    this.minute = arguments[1];
-                    this.second = arguments[2];
-                    this.frame = arguments[3];
-                    this.framerate = arguments[4];
-                    this.dropframe = arguments[5];
+                    assign.apply(this, arguments);
                     break;
-
                 default:
                     throw new Error();
 
             }
 
-        }
+        }  
         else throw new TypeError();
+
+        this.getFrame = function() {
+
+            var totalMinutes;
+
+            if (this.dropframe) {
+                totalMinutes = 60 * this.hour + this.minute;
+                return this.framerate * 3600 * this.hour + 
+                    1800 * this.minute + 
+                    30 * this.second +
+                    this.frame - 
+                    2 * (totalMinutes - Math.floor(totalMinutes / 10));
+            }
+            else {
+                return this.hour * 3600 * this.framerate +
+                this.minute * 60 * this.framerate +
+                this.second * this.framerate +
+                this.frame;
+            }
+        };
+
+        this.to = function(framerate, dropframe) {
+
+            return new Timecode(this.getFrame(), framerate, dropframe);
+
+        };
 
         function valid(args) {
 
@@ -63,19 +85,57 @@ module.exports =
                         return typeof value === 'number';
                     }) &&
                     typeof args[5] === 'boolean'
-                )
+                ) ||
+                (typeof args[0] === 'number' &&
+                    typeof args[1] === 'number' &&
+                    typeof args[2] === 'boolean')
             );
 
         }
 
-        function parse(timecode) {
+        function parseString(timecode, framerate) {
 
             var results = regex.exec(timecode);
-            this.hour = Number(results[1]);
-            this.minute = Number(results[2]);
-            this.second = Number(results[3]);
-            this.frame = Number(results[5]);
-            this.dropframe = (results[4] !== ':');
+
+            assign.call(this, 
+                results[1],
+                results[2],
+                results[3],
+                results[5],
+                framerate,
+                (results[4] !== ':'));
+
+        }
+
+        function parseFrame(absoluteFrame, framerate, dropframe) {
+
+            var partial, totalMinutes, droppedFrames;
+
+            if (dropframe) {
+                //remember to drop frames
+                totalMinutes = ((absoluteFrame / framerate) / 60);
+                droppedFrames = Math.floor(totalMinutes / 10) * 2;
+                absoluteFrame += droppedFrames;
+            }
+
+            assign.call(this, 
+                Math.floor(Math.floor(Math.floor(absoluteFrame / framerate) / 60) /60) % 24,
+                Math.floor(Math.floor(absoluteFrame / framerate) / 60) % 60,
+                Math.floor(absoluteFrame / framerate) % 60,
+                Math.round(absoluteFrame % framerate),
+                framerate,
+                dropframe);
+
+        }
+
+        function assign(hour, minute, second, frame, framerate, dropframe) {
+
+            this.hour = Number(hour);
+            this.minute = Number(minute);
+            this.second = Number(second);
+            this.frame = Number(frame);
+            this.framerate = framerate;
+            this.dropframe = dropframe;
 
         }
 

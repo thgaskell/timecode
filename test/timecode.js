@@ -41,7 +41,6 @@ describe('Timecode', function() {
         it('should accept direct values', function() {
             
             timecode = new Timecode(1, 2, 3, 4, 30, false);
-
             timecode.hour.should.equal(1).and
             timecode.minute.should.equal(2).and
             timecode.second.should.equal(3).and
@@ -51,27 +50,92 @@ describe('Timecode', function() {
 
         });
 
+        it('should accept absolute frame', function() {
+
+            timecode = new Timecode(111694, 30, false);
+            timecode.hour.should.equal(1).and
+            timecode.minute.should.equal(2).and
+            timecode.second.should.equal(3).and
+            timecode.frame.should.equal(4).and
+            timecode.framerate.should.equal(30).and
+            timecode.dropframe.should.equal(false);
+
+            timecode = new Timecode(111682, 30, true);
+            timecode.hour.should.equal(1).and
+            timecode.minute.should.equal(2).and
+            timecode.second.should.equal(3).and
+            timecode.frame.should.equal(4).and
+            timecode.framerate.should.equal(30).and
+            timecode.dropframe.should.equal(true);
+
+        });
+
     });
 
-describe('#toString()', function() {
+    describe('#toString()', function() {
 
-    var timecode;
+        var timecode;
 
-    it('should return a valid timecode string', function() {
+        it('should return a valid timecode string', function() {
 
-        timecode = new Timecode('01:02:03:04', 30);
-        timecode.toString().should.match(/01:02:03:04/);
+            timecode = new Timecode('01:02:03:04', 30);
+            timecode.toString().should.match(/01:02:03:04/);
 
-        timecode = new Timecode('01:02:03;04', 30);
-        timecode.toString().should.match(/01:02:03;04/);
+            timecode = new Timecode('01:02:03;04', 30);
+            timecode.toString().should.match(/01:02:03;04/);
+
+        });
+
+        after(function() {
+
+            Timecode.dropDelimiter = ',';
+
+        });
+    })
+
+    describe('#getFrame()', function() {
+
+        var timecode;
+
+        it('should return the absolute frame number', function() {
+
+            timecode = new Timecode('00:01:00:00', 30);
+            timecode.getFrame().should.equal(1800);
+
+            timecode = new Timecode('00:01:00;02', 29.97);
+            timecode.getFrame().should.equal(1800);
+        })
 
     });
 
-    after(function() {
+    describe('#to()', function() {
 
-        Timecode.dropDelimiter = ',';
+        var timecode;
+
+        beforeEach(function() {
+
+            timecode = new Timecode('00:01:00:00', 30);
+
+        });
+
+        it('should convert the timecode to another format', function() {
+
+            timecode = timecode.to(29.97, true);
+            timecode.hour.should.equal(0);
+            timecode.minute.should.equal(1);
+            timecode.second.should.equal(0);
+            timecode.frame.should.equal(2);
+            timecode.framerate.should.equal(29.97);
+            timecode.dropframe.should.be.true;
+
+        });
+
+        afterEach(function() {
+
+            timecode = undefined;
+
+        });
 
     });
-})
 
 });
