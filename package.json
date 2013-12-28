@@ -1,7 +1,7 @@
 {
   "name": "timecode",
-  "version": "0.0.0",
-  "description": "Library for creating and manipulating SMPTE timecode objects.",
+  "version": "0.0.1",
+  "description": "Library for creating and converting SMPTE timecode objects.",
   "main": "index.js",
   "directories": {
     "test": "test"
