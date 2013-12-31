@@ -27,45 +27,45 @@ describe('Timecode', function() {
 
         it('should accept timecode string and framerate', function() {
 
-                timecode = new Timecode('01:02:03:04', 30);
+                timecode = new Timecode('01:02:03:04', 29.97);
 
                 timecode.hour.should.equal(1).and
                 timecode.minute.should.equal(2).and
                 timecode.second.should.equal(3).and
                 timecode.frame.should.equal(4).and
-                timecode.framerate.should.equal(30).and
+                timecode.framerate.should.equal(29.97).and
                 timecode.dropframe.should.equal(false);
 
         });
 
         it('should accept direct values', function() {
             
-            timecode = new Timecode(1, 2, 3, 4, 30, false);
+            timecode = new Timecode(1, 2, 3, 4, 29.97, false);
             timecode.hour.should.equal(1).and
             timecode.minute.should.equal(2).and
             timecode.second.should.equal(3).and
             timecode.frame.should.equal(4).and
-            timecode.framerate.should.equal(30).and
+            timecode.framerate.should.equal(29.97).and
             timecode.dropframe.should.equal(false);
 
         });
 
         it('should accept absolute frame', function() {
 
-            timecode = new Timecode(111694, 30, false);
+            timecode = new Timecode(111694, 29.97, false);
             timecode.hour.should.equal(1).and
             timecode.minute.should.equal(2).and
             timecode.second.should.equal(3).and
             timecode.frame.should.equal(4).and
-            timecode.framerate.should.equal(30).and
+            timecode.framerate.should.equal(29.97).and
             timecode.dropframe.should.equal(false);
 
-            timecode = new Timecode(111682, 30, true);
+            timecode = new Timecode(111582, 29.97, true);
             timecode.hour.should.equal(1).and
             timecode.minute.should.equal(2).and
             timecode.second.should.equal(3).and
             timecode.frame.should.equal(4).and
-            timecode.framerate.should.equal(30).and
+            timecode.framerate.should.equal(29.97).and
             timecode.dropframe.should.equal(true);
 
         });
@@ -78,10 +78,10 @@ describe('Timecode', function() {
 
         it('should return a valid timecode string', function() {
 
-            timecode = new Timecode('01:02:03:04', 30);
+            timecode = new Timecode('01:02:03:04', 29.97);
             timecode.toString().should.match(/01:02:03:04/);
 
-            timecode = new Timecode('01:02:03;04', 30);
+            timecode = new Timecode('01:02:03;04', 29.97);
             timecode.toString().should.match(/01:02:03;04/);
 
         });
