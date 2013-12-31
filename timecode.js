@@ -49,20 +49,21 @@ module.exports =
 
         this.getFrame = function() {
 
-            var totalMinutes;
+            var totalMinutes,
+                framerate = Math.round(this.framerate);
 
             if (this.dropframe) {
                 totalMinutes = 60 * this.hour + this.minute;
-                return this.framerate * 3600 * this.hour + 
+                return framerate * 3600 * this.hour + 
                     1800 * this.minute + 
                     30 * this.second +
                     this.frame - 
                     2 * (totalMinutes - Math.floor(totalMinutes / 10));
             }
             else {
-                return this.hour * 3600 * this.framerate +
-                this.minute * 60 * this.framerate +
-                this.second * this.framerate +
+                return this.hour * 3600 * framerate +
+                this.minute * 60 * framerate +
+                this.second * framerate +
                 this.frame;
             }
         };
@@ -109,20 +110,27 @@ module.exports =
 
         function parseFrame(absoluteFrame, framerate, dropframe) {
 
-            var partial, totalMinutes, droppedFrames;
+            var D, M, totalMinutes, droppedFrames,
+                roundFramerate = Math.round(framerate);
 
             if (dropframe) {
-                //remember to drop frames
-                totalMinutes = ((absoluteFrame / framerate) / 60);
-                droppedFrames = Math.floor(totalMinutes / 10) * 2;
-                absoluteFrame += droppedFrames;
+
+                // The number of 10 minute inteverals
+                D = Math.floor(absoluteFrame / ((600 * roundFramerate) - 18));
+
+                // The remaining minutes
+                M = absoluteFrame % ((600 * roundFramerate) - 18);
+
+                // Add 18 frames for every 10 minutes, and 2 frames for every remaining minute
+                absoluteFrame += 18 * D + 2 * Math.floor((M - 2) / (60 * roundFramerate - 2));
+
             }
 
             assign.call(this, 
-                Math.floor(Math.floor(Math.floor(absoluteFrame / framerate) / 60) /60) % 24,
-                Math.floor(Math.floor(absoluteFrame / framerate) / 60) % 60,
-                Math.floor(absoluteFrame / framerate) % 60,
-                Math.round(absoluteFrame % framerate),
+                Math.floor(Math.floor(Math.floor(absoluteFrame / roundFramerate) / 60) / 60) % 24,
+                Math.floor(Math.floor(absoluteFrame / roundFramerate) / 60) % 60,
+                Math.floor(absoluteFrame / roundFramerate) % 60,
+                absoluteFrame % roundFramerate,
                 framerate,
                 dropframe);
 
