@@ -1,5 +1,5 @@
 # Timecode
-**Version: 0.0.1**
+**Version: 0.0.2**
 
 Library for creating and converting SMPTE timecode objects.
 
