@@ -10,6 +10,8 @@ module.exports =
 
     };
 
+    Timecode.domain = [23.976, 23.98, 24, 29.97, 30];
+
     Timecode.prototype.toString = function() {
 
         var times = [this.hour, this.minute, this.second, this.frame]
@@ -31,12 +33,14 @@ module.exports =
             switch(arguments.length) {
 
                 case 2:
-                    parseString.call(this, arguments[0], arguments[1]);
+                    if (typeof arguments[0] === 'string')
+                        parseString.call(this, arguments[0], arguments[1]);
+                    else if (typeof arguments[0] === 'number')
+                        parseFrame.call(this, arguments[0], arguments[1]);
+                    else
+                        throw new Error('First parameter must either be a string or a number');
                     break;
-                case 3:
-                    parseFrame.call(this, arguments[0], arguments[1], arguments[2]);
-                    break;
-                case 6:
+                case 5:
                     assign.apply(this, arguments);
                     break;
                 default:
@@ -70,7 +74,7 @@ module.exports =
 
         this.to = function(framerate, dropframe) {
 
-            return new Timecode(this.getFrame(), framerate, dropframe);
+            return new Timecode(this.getFrame(), framerate);
 
         };
 
@@ -81,15 +85,14 @@ module.exports =
                     Timecode.validate(args[0]) &&
                     typeof args[1] === 'number'
                 ) ||
-                ([].slice.call(args, 0, 5)
+                (typeof args[0] === 'number' &&
+                    typeof args[1] === 'number'
+                ) ||
+                ([].slice.call(args, 0, 4)
                     .every(function(value) {
                         return typeof value === 'number';
-                    }) &&
-                    typeof args[5] === 'boolean'
-                ) ||
-                (typeof args[0] === 'number' &&
-                    typeof args[1] === 'number' &&
-                    typeof args[2] === 'boolean')
+                    })
+                )
             );
 
         }
@@ -103,17 +106,17 @@ module.exports =
                 results[2],
                 results[3],
                 results[5],
-                framerate,
-                (results[4] !== ':'));
+                framerate
+            );
 
         }
 
-        function parseFrame(absoluteFrame, framerate, dropframe) {
+        function parseFrame(absoluteFrame, framerate) {
 
             var D, M, totalMinutes, droppedFrames,
                 roundFramerate = Math.round(framerate);
 
-            if (dropframe) {
+            if (framerate === 29.97) {
 
                 // The number of 10 minute inteverals
                 D = Math.floor(absoluteFrame / ((600 * roundFramerate) - 18));
@@ -131,19 +134,18 @@ module.exports =
                 Math.floor(Math.floor(absoluteFrame / roundFramerate) / 60) % 60,
                 Math.floor(absoluteFrame / roundFramerate) % 60,
                 absoluteFrame % roundFramerate,
-                framerate,
-                dropframe);
+                framerate);
 
         }
 
-        function assign(hour, minute, second, frame, framerate, dropframe) {
+        function assign(hour, minute, second, frame, framerate) {
 
             this.hour = Number(hour);
             this.minute = Number(minute);
             this.second = Number(second);
             this.frame = Number(frame);
             this.framerate = framerate;
-            this.dropframe = dropframe;
+            this.dropframe = (framerate === 29.97);
 
         }
 
