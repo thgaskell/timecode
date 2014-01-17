@@ -5,14 +5,14 @@ Library for creating and converting SMPTE timecode objects.
 
 ---
 
-Timecode allows you to easily convert between timecodes of different framerates.
+Timecode allows you to easily convert between timecodes of different frame rates.
 
 # Usage
 
 ```javascript
 new Timecode('01:02:03;04' 29.97);
-new Timecode(1, 2, 3, 4 29.97 true);
-new Timecode(111694, 29.97, true);
+new Timecode(1, 2, 3, 4 29.97);
+new Timecode(111694, 29.97);
 ```
 
 # Reference
@@ -48,12 +48,11 @@ Returns the absolute frame number that the timecode represents.
 
 ### Returns: `number`
 
-## `to(framerate, dropframe)`
+## `to(framerate)`
 
-Converts the timecode to another framerate and dropframe.
+Converts the timecode to another frame rate.
 
 ### Parameters
-  - `framerate` – a number representing the target framerate.
-  - `dropframe` – a boolean representing whether the target timecode should have dropframes or not.
+  - `framerate` – a number representing the target frame rate.
   
 ### Returns: `Timecode object`
