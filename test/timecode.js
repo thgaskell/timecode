@@ -127,13 +127,9 @@ describe('Timecode', function() {
 
         var timecode;
 
-        beforeEach(function() {
+        it('should convert between 30 to 29.97', function() {
 
             timecode = new Timecode('00:01:00:00', 30);
-
-        });
-
-        it('should convert the timecode to another format', function() {
 
             timecode = timecode.to(29.97);
             timecode.hour.should.equal(0);
@@ -143,6 +139,36 @@ describe('Timecode', function() {
             timecode.framerate.should.equal(29.97);
             timecode.dropframe.should.be.true;
 
+            timecode = timecode.to(30);
+            timecode.hour.should.equal(0);
+            timecode.minute.should.equal(1);
+            timecode.second.should.equal(0);
+            timecode.frame.should.equal(0);
+            timecode.framerate.should.equal(30);
+            timecode.dropframe.should.be.false;
+
+        });
+
+        it('should convert between 23.97 and 29.98', function() {
+
+            timecode = new Timecode('00:01:00:00', 23.98);
+
+            timecode = timecode.to(29.97);
+            timecode.hour.should.equal(0);
+            timecode.minute.should.equal(0);
+            timecode.second.should.equal(48);
+            timecode.frame.should.equal(0);
+            timecode.framerate.should.equal(29.97);
+            timecode.dropframe.should.be.true;
+
+            timecode = timecode.to(23.98);
+            timecode.hour.should.equal(0);
+            timecode.minute.should.equal(1);
+            timecode.second.should.equal(0);
+            timecode.frame.should.equal(0);
+            timecode.framerate.should.equal(23.976);
+            timecode.dropframe.should.be.false;
+
         });
 
         afterEach(function() {
@@ -151,6 +177,19 @@ describe('Timecode', function() {
 
         });
 
+    });
+
+    describe('#toMilliseconds()', function() {
+
+        var timecode
+        
+        it('should return the timecode in milliseconds', function() {
+
+            new Timecode('00:00:00:01', 29.97).toMilliseconds().should.equal(33);
+            new Timecode('00:00:01:00', 29.97).toMilliseconds().should.equal(1000);
+            new Timecode('00:00:01:15', 29.97).toMilliseconds().should.equal(1500);
+
+        });
     });
 
 });
