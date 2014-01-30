@@ -65,34 +65,46 @@ module.exports =
                     2 * (totalMinutes - Math.floor(totalMinutes / 10));
             }
             else {
-                return this.hour * 3600 * framerate +
-                this.minute * 60 * framerate +
-                this.second * framerate +
+                return framerate * (this.hour * 3600 +
+                this.minute * 60 +
+                this.second) + 
                 this.frame;
             }
         };
 
-        this.to = function(framerate, dropframe) {
+        this.to = function(framerate) {
 
-            return new Timecode(this.getFrame(), framerate);
+            if (Math.round(this.framerate) === 30 &&
+                    (framerate === Math.round(framerate) === 24))
+                return new Timecode(threeTwoPullUp(this.getFrame()), framerate);
+            else if (Math.round(this.framerate) === 24 &&
+                    (framerate === Math.round(framerate) === 30))
+                return new Timecode(threeTwoPullDown(this.getFrame()), framerate);
+            else
+                return new Timecode(this.getFrame(), framerate);
+
+        };
+
+        this.toMilliseconds = function() {
+
+            return parseInt(this.getFrame() / Math.round(this.framerate) * 1000);
 
         };
 
         function valid(args) {
 
             return (
-                (typeof args[0] === 'string' &&
-                    Timecode.validate(args[0]) &&
-                    typeof args[1] === 'number'
+                ((typeof args[0] === 'string' &&
+                    Timecode.validate(args[0])
                 ) ||
-                (typeof args[0] === 'number' &&
-                    typeof args[1] === 'number'
-                ) ||
-                ([].slice.call(args, 0, 4)
+                (typeof args[0] === 'number') ||
+                ([].slice.call(args, 0, 3)
                     .every(function(value) {
                         return typeof value === 'number';
                     })
-                )
+                )) &&
+                (typeof args[args.length - 1] === 'number' &&
+                    Timecode.domain.indexOf(args[args.length - 1]) > -1)
             );
 
         }
@@ -144,10 +156,19 @@ module.exports =
             this.minute = Number(minute);
             this.second = Number(second);
             this.frame = Number(frame);
-            this.framerate = framerate;
+            this.framerate = (framerate === 23.98) ? 23.976 : framerate;
             this.dropframe = (framerate === 29.97);
 
         }
+
+        function threeTwoPullDown(frames) {
+            return Math.round(frames * 5/4);
+        }
+
+        function threeTwoPullUp(frames) {
+            return Math.round(frames * 4/5);
+        }
+
 
     }
 

@@ -1,7 +1,9 @@
 # Timecode
-**Version: 0.0.2**
+**Version: 0.0.3**
 
 Library for creating and converting SMPTE timecode objects.
+
+**Supported frame rates:** `24`, `23.976`/`23.98`, `29.97`*(dropframe)*, `30`
 
 ---
 
@@ -10,8 +12,8 @@ Timecode allows you to easily convert between timecodes of different frame rates
 # Usage
 
 ```javascript
-new Timecode('01:02:03;04' 29.97);
-new Timecode(1, 2, 3, 4 29.97);
+new Timecode('01:02:03;04', 29.97);
+new Timecode(1, 2, 3, 4, 29.97);
 new Timecode(111694, 29.97);
 ```
 
