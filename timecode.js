@@ -22,7 +22,7 @@ module.exports =
         return times.slice(0, 3).join(':') +
             (this.dropframe ? ';' : ':') +
             times[3];
-            
+
     };
 
     function Timecode() {
@@ -48,7 +48,7 @@ module.exports =
 
             }
 
-        }  
+        }
         else throw new TypeError();
 
         this.getFrame = function() {
@@ -58,16 +58,16 @@ module.exports =
 
             if (this.dropframe) {
                 totalMinutes = 60 * this.hour + this.minute;
-                return framerate * 3600 * this.hour + 
-                    1800 * this.minute + 
+                return framerate * 3600 * this.hour +
+                    1800 * this.minute +
                     30 * this.second +
-                    this.frame - 
+                    this.frame -
                     2 * (totalMinutes - Math.floor(totalMinutes / 10));
             }
             else {
                 return framerate * (this.hour * 3600 +
                 this.minute * 60 +
-                this.second) + 
+                this.second) +
                 this.frame;
             }
         };
@@ -75,10 +75,10 @@ module.exports =
         this.to = function(framerate) {
 
             if (Math.round(this.framerate) === 30 &&
-                    (framerate === Math.round(framerate) === 24))
+                    (Math.round(framerate) === 24))
                 return new Timecode(threeTwoPullUp(this.getFrame()), framerate);
             else if (Math.round(this.framerate) === 24 &&
-                    (framerate === Math.round(framerate) === 30))
+                    (Math.round(framerate) === 30))
                 return new Timecode(threeTwoPullDown(this.getFrame()), framerate);
             else
                 return new Timecode(this.getFrame(), framerate);
@@ -113,7 +113,7 @@ module.exports =
 
             var results = regex.exec(timecode);
 
-            assign.call(this, 
+            assign.call(this,
                 results[1],
                 results[2],
                 results[3],
@@ -141,7 +141,7 @@ module.exports =
 
             }
 
-            assign.call(this, 
+            assign.call(this,
                 Math.floor(Math.floor(Math.floor(absoluteFrame / roundFramerate) / 60) / 60) % 24,
                 Math.floor(Math.floor(absoluteFrame / roundFramerate) / 60) % 60,
                 Math.floor(absoluteFrame / roundFramerate) % 60,
